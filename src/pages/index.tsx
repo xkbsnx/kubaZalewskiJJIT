@@ -4,8 +4,8 @@ import localFont from "next/font/local";
 import { Typography } from "@mui/material";
 
 import Wrapper from "@/common/components/Wrapper";
-import Button from "@/common/components/Button";
 import theme from "@/styles/theme";
+import PokemonForm from "@/modules/pokemonForm";
 
 export const imbVgaFont = localFont({ src: "../../public/fonts/imb_vga.woff" });
 
@@ -26,12 +26,32 @@ interface MyDate {
 }
 
 export async function getServerSideProps() {
-  const res = await fetch(
-    "https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Warsaw",
-  );
-  const date = await res.json();
+  try {
+    const res = await fetch(
+      "https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Warsaw",
+    );
+    const date = await res.json();
 
-  return { props: { date } };
+    return { props: { date } };
+  } catch {
+    return {
+      props: {
+        year: 1994,
+        month: 10,
+        day: 1,
+        hour: 12,
+        minute: 12,
+        seconds: 12,
+        milliSeconds: 12,
+        dateTime: "122",
+        date: "12",
+        time: "12",
+        timeZone: "gmt+1",
+        dayOfWeek: "Wednesday",
+        dstActive: true,
+      },
+    };
+  }
 }
 
 const Home: FC<{ date: MyDate }> = ({ date }) => {
@@ -53,6 +73,7 @@ const Home: FC<{ date: MyDate }> = ({ date }) => {
           >
             {dateToDisplay}
           </Typography>
+          <PokemonForm />
         </Wrapper>
       </main>
     </>

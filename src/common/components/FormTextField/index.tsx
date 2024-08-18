@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { forwardRef } from "react";
 import { TextFieldProps } from "@mui/material/TextField";
 
 import {
@@ -11,15 +11,17 @@ export type CustomTextFieldProps = TextFieldProps & {
   label?: string;
 };
 
-const TextField: FC<CustomTextFieldProps> = (props) => {
-  const { label, ...textFieldProps } = props;
+const TextField = forwardRef<HTMLElement, CustomTextFieldProps>(
+  (props, ref) => {
+    const { label, ...textFieldProps } = props;
 
-  return (
-    <TextFieldContainer>
-      <TextFieldLabel fontSize="14px">{label}</TextFieldLabel>
-      <StyledMUITextField {...textFieldProps} />
-    </TextFieldContainer>
-  );
-};
+    return (
+      <TextFieldContainer>
+        <TextFieldLabel fontSize="14px">{label}</TextFieldLabel>
+        <StyledMUITextField {...textFieldProps} inputRef={ref} />
+      </TextFieldContainer>
+    );
+  },
+);
 
 export default TextField;
