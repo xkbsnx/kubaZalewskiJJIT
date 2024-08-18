@@ -1,15 +1,19 @@
 import { createTheme } from "@mui/material/styles";
 
 import { Primary, Grey, Error, Disabled } from "./colors";
+import { imbVgaFont } from "@/pages";
 
 const theme = createTheme({
+  typography: {
+    fontFamily: imbVgaFont.style.fontFamily,
+  },
   palette: {
     primary_: Primary,
     grey_: Grey,
     error_: Error,
-    disabled: Disabled
-  }
-})
+    disabled: Disabled,
+  },
+});
 
 interface PrimaryColors {
   primary: string;
@@ -34,16 +38,18 @@ interface DisabledColors {
 
 declare module "@mui/material/styles" {
   interface Palette {
-    primary_: PrimaryColors,
-    grey_: GreyColors,
-    error_: ErrorColors,
-    disabled: DisabledColors
+    primary_: PrimaryColors;
+    grey_: GreyColors;
+    error_: ErrorColors;
+    disabled: DisabledColors;
   }
 
   interface PaletteOptions {
-    primary_?: PrimaryColors,
-    grey_: GreyColors,
-    error_: ErrorColors,
-    disabled: DisabledColors
+    primary_?: PrimaryColors;
+    grey_: GreyColors;
+    error_: ErrorColors;
+    disabled: DisabledColors;
   }
 }
+
+export default theme;
