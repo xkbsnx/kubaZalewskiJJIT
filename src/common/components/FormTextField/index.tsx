@@ -17,7 +17,7 @@ const TextField = forwardRef<HTMLElement, CustomTextFieldProps>(
 
     return (
       <TextFieldContainer>
-        <TextFieldLabel fontSize="14px">{label}</TextFieldLabel>
+        <TextFieldLabel fontSize="12px">{label}</TextFieldLabel>
         <StyledMUITextField {...textFieldProps} inputRef={ref} />
       </TextFieldContainer>
     );

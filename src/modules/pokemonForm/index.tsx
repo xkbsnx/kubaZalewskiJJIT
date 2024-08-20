@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, SyntheticEvent } from "react";
 import { Box } from "@mui/material";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -6,11 +6,14 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useQuery } from "@tanstack/react-query";
 import { FuseResult } from "fuse.js";
+import { debounce } from "@mui/material/utils";
 
 import TextField from "@/common/components/FormTextField";
 import Button from "@/common/components/Button";
 import PokemonDataContainer from "./PokemonDataContainer";
 import { Pokemon } from "@/pages/api/search";
+import { SinglePokemonType } from "./PokemonDataContainer";
+import SuccessModal from "./SuccessModal";
 
 interface PokemonFormData {
   trainerName: string;
@@ -18,8 +21,19 @@ interface PokemonFormData {
   pokemonName: string;
 }
 
+interface PokemonApiData {
+  types: SinglePokemonType[];
+  id: number;
+  base_experience: number;
+}
+
 const PokemonForm = () => {
   const [pokemonNameInputValue, setPokemonNameInputValue] = useState("");
+  const [chosenPokemon, setChosenPokemon] = useState<{
+    name: string;
+    id: number;
+  }>();
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const validationSchema = yup
     .object({
@@ -34,7 +48,7 @@ const PokemonForm = () => {
     register,
     formState: { errors },
     reset,
-    getValues,
+    setValue,
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
@@ -52,8 +66,33 @@ const PokemonForm = () => {
     },
   });
 
-  // TODO: handle show submit success modal
-  const onSubmit = (data: PokemonFormData) => console.log(data);
+  const { data: chosenPokemonData, isLoading: isChosenPokemonDataLoading } =
+    useQuery({
+      queryKey: ["pokemonData", chosenPokemon],
+      enabled: typeof chosenPokemon === "object",
+      queryFn: async (): Promise<PokemonApiData> => {
+        const response = await fetch(
+          `https://pokeapi.co/api/v2/pokemon/${chosenPokemon!.name}`,
+        );
+        return await response.json();
+      },
+    });
+
+  const onSubmit = (data: PokemonFormData) => {
+    setIsSuccessModalOpen(true);
+  };
+
+  const handleInputChange = (event: SyntheticEvent, value: string) => {
+    setPokemonNameInputValue(value);
+  };
+
+  const debouncedHandleInputChange = useMemo(
+    () =>
+      debounce((event: SyntheticEvent, value: string) => {
+        handleInputChange(event, value);
+      }, 400),
+    [handleInputChange],
+  );
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -81,8 +120,15 @@ const PokemonForm = () => {
             loading={isPokemonsDataLoading}
             //@ts-ignore
             getOptionLabel={(option) => option.item.name}
-            // TODO: handle debounce change
-            onInputChange={(event, value) => setPokemonNameInputValue(value)}
+            onInputChange={(event, value) => {
+              debouncedHandleInputChange(event, value);
+            }}
+            onChange={(event: SyntheticEvent, value) => {
+              //@ts-ignore
+              setChosenPokemon(value ? value.item : null);
+              //@ts-ignore
+              setValue("pokemonName", value ? value.item.name : null);
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -93,12 +139,21 @@ const PokemonForm = () => {
             )}
           />
         </Box>
-        <PokemonDataContainer />
+        <PokemonDataContainer
+          pokemonImageUrl={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${chosenPokemon?.id}.png`}
+          pokemonName={chosenPokemon?.name}
+          pokemonType={chosenPokemonData?.types}
+          pokemonBaseExperience={chosenPokemonData?.base_experience}
+          pokemonId={chosenPokemonData?.id}
+        />
         <Box display="flex" gap="16px">
           <Button
             buttontype="soft"
             sx={{ marginLeft: "auto" }}
-            onClick={() => reset()}
+            onClick={() => {
+              reset();
+              setChosenPokemon(undefined);
+            }}
           >
             Reset
           </Button>
@@ -107,6 +162,12 @@ const PokemonForm = () => {
           </Button>
         </Box>
       </Box>
+      <SuccessModal
+        isModalOpen={isSuccessModalOpen}
+        setIsModalOpen={setIsSuccessModalOpen}
+        resetForm={reset}
+        setChosenPokemon={setChosenPokemon}
+      />
     </form>
   );
 };

@@ -11,7 +11,7 @@ export const AppWrapper = styled(Box)`
 export const FormWrapper = styled(Box)`
   width: 100%;
   max-width: 544px;
-  height: 614px;
+  height: auto;
   border: ${({ theme }) => `1px solid ${theme.palette.grey_.grey_400}`};
   border-radius: 2px;
   display: flex;
